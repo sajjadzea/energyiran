@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد تعاملی: تحلیل بازار انرژی پایدار ایران (خرداد ۱۴۰۴)</title>
+    <!-- Visualization & Content Choices: 
+        - شکاف انرژی: هدف(اطلاع‌رسانی)، نمایش(اعداد بزرگ و نمودار خطی)، کتابخانه(Chart.js). توجیه: به سرعت مقیاس مشکل و مسیر رشد مورد نیاز را نشان می‌دهد.
+        - ترکیب انرژی‌های تجدیدپذیر: هدف(مقایسه)، نمایش(نمودار دونات)، کتابخانه(Chart.js). توجیه: به وضوح تسلط فعلی انرژی خورشیدی را نشان می‌دهد.
+        - تحلیل SWOT: هدف(سازماندهی)، نمایش(کارت‌های HTML استایل‌دهی‌شده)، کتابخانه(ندارد). توجیه: مزایا و معایب را برای مقایسه آسان به صورت بصری جدا می‌کند.
+        - تقاضای مشتری: هدف(مقایسه/سازماندهی)، نمایش(نمودار میله‌ای افقی)، کتابخانه(Chart.js). توجیه: بخش‌های مشتری را بر اساس فوریت رتبه‌بندی کرده و امیدوارکننده‌ترین بازارها را برجسته می‌کند.
+        - مقایسه سرمایه‌گذاری: هدف(مقایسه)، نمایش(کارت‌های HTML استایل‌دهی‌شده)، کتابخانه(ندارد). توجیه: امکان مقایسه آسان ریسک، سرمایه و بازدهی را برای انواع مختلف سرمایه‌گذاری فراهم می‌کند، که از جدول ۴ گزارش اقتباس شده است.
+        - مدل‌های کسب‌وکار: هدف(سازماندهی)، نمایش(خط زمانی HTML)، کتابخانه(ندارد). توجیه: ایده‌های استارتاپی را در قالبی متوالی و قابل هضم ارائه می‌دهد.
+        تمامی نمودارها با Chart.js (Canvas) و عناصر دیگر با HTML/CSS/Tailwind پیاده‌سازی شده‌اند. SVG یا Mermaid JS استفاده نشده است.
+    -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #334155; /* slate-700 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .nav-btn {
+            transition: all 0.3s ease;
+            color: #475569; /* slate-600 */
+        }
+        .nav-btn.active {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+        }
+        .nav-btn:hover:not(.active) {
+            color: #1e293b; /* slate-800 */
+            background-color: #eef2ff; /* indigo-50 */
+        }
+        .swot-card {
+            border-top: 4px solid;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .swot-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 15px -3px rgb(0 0 0 / 0.07), 0 3px 5px -3px rgb(0 0 0 / 0.07);
+        }
+        .swot-strengths { border-color: #22c55e; } /* green-500 */
+        .swot-weaknesses { border-color: #ef4444; } /* red-500 */
+        .swot-opportunities { border-color: #3b82f6; } /* blue-500 */
+        .swot-threats { border-color: #f97316; } /* orange-500 */
+        .investment-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .investment-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 15px -3px rgb(0 0 0 / 0.07), 0 3px 5px -3px rgb(0 0 0 / 0.07);
+        }
+        section {
+            scroll-margin-top: 80px; /* Height of sticky header */
+        }
+        .hero-stat-card {
+            border-bottom: 4px solid;
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between py-3">
+                <h1 class="text-lg sm:text-xl font-bold text-indigo-700">تحلیل بازار انرژی پایدار ایران</h1>
+                <nav id="navbar" class="hidden md:flex items-center space-i-1">
+                    <button data-target="overview" class="nav-btn px-3 py-1.5 rounded-md text-sm font-medium">چالش اصلی</button>
+                    <button data-target="swot" class="nav-btn px-3 py-1.5 rounded-md text-sm font-medium">تحلیل SWOT</button>
+                    <button data-target="customers" class="nav-btn px-3 py-1.5 rounded-md text-sm font-medium">بخش‌های پرتقاضا</button>
+                    <button data-target="investment" class="nav-btn px-3 py-1.5 rounded-md text-sm font-medium">فرصت‌های سرمایه‌گذاری</button>
+                    <button data-target="models" class="nav-btn px-3 py-1.5 rounded-md text-sm font-medium">مدل‌های کسب‌وکار</button>
+                </nav>
+                <button id="mobile-menu-button" class="md:hidden text-slate-600 hover:text-indigo-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+            <div id="mobile-menu" class="hidden md:hidden py-2 border-t border-slate-200">
+                <button data-target="overview" class="block w-full text-right nav-btn px-3 py-2 rounded-md text-sm font-medium">چالش اصلی</button>
+                <button data-target="swot" class="block w-full text-right nav-btn px-3 py-2 rounded-md text-sm font-medium">تحلیل SWOT</button>
+                <button data-target="customers" class="block w-full text-right nav-btn px-3 py-2 rounded-md text-sm font-medium">بخش‌های پرتقاضا</button>
+                <button data-target="investment" class="block w-full text-right nav-btn px-3 py-2 rounded-md text-sm font-medium">فرصت‌های سرمایه‌گذاری</button>
+                <button data-target="models" class="block w-full text-right nav-btn px-3 py-2 rounded-md text-sm font-medium">مدل‌های کسب‌وکار</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-6 lg:p-8 space-y-16 md:space-y-24">
+
+        <section id="overview" class="text-center pt-4">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-3">بحران انرژی و شکاف عظیم میان واقعیت و اهداف ملی</h2>
+            <p class="text-base md:text-lg text-slate-600 max-w-4xl mx-auto mb-10">ایران با ناترازی شدید انرژی روبروست. این بخش، مقیاس چالش و فرصت پیش رو را با مقایسه ظرفیت نصب‌شده فعلی، کمبود پیش‌بینی‌شده برق، و اهداف بلندپروازانه دولت برای توسعه انرژی‌های تجدیدپذیر به تصویر می‌کشد.</p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-12">
+                <div class="bg-white rounded-xl shadow-lg p-5 md:p-6 hero-stat-card border-indigo-500">
+                    <h3 class="text-md md:text-lg font-semibold text-slate-500">ظرفیت نصب‌شده فعلی (خرداد ۱۴۰۴)</h3>
+                    <p class="text-4xl md:text-5xl font-bold text-indigo-600 my-2">۱,۷۰۰</p>
+                    <p class="text-md md:text-lg text-slate-600">مگاوات</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-5 md:p-6 hero-stat-card border-amber-500">
+                    <h3 class="text-md md:text-lg font-semibold text-slate-500">کمبود پیش‌بینی‌شده برق (تا پایان ۱۴۰۴)</h3>
+                    <p class="text-4xl md:text-5xl font-bold text-amber-600 my-2">۲۵,۰۰۰</p>
+                    <p class="text-md md:text-lg text-slate-600">مگاوات</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-5 md:p-6 hero-stat-card border-emerald-500 lg:col-span-1 sm:col-span-2">
+                    <h3 class="text-md md:text-lg font-semibold text-slate-500">هدف ملی میان‌مدت (تا ۱۴۰۸)</h3>
+                    <p class="text-4xl md:text-5xl font-bold text-emerald-600 my-2">۳۰,۰۰۰</p>
+                    <p class="text-md md:text-lg text-slate-600">مگاوات</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 md:gap-8 items-start">
+                <div class="lg:col-span-3 bg-white rounded-xl shadow-lg p-5 md:p-6">
+                    <h3 class="text-xl font-bold text-slate-700 mb-4">مسیر رشد ظرفیت تجدیدپذیر: از واقعیت تا هدف</h3>
+                    <div class="chart-container">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-5 md:p-6">
+                    <h3 class="text-xl font-bold text-slate-700 mb-4">ترکیب انرژی‌های تجدیدپذیر فعلی</h3>
+                    <div class="chart-container h-80 md:h-96">
+                        <canvas id="compositionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+             <div class="mt-8 text-xs md:text-sm text-slate-500 text-center">
+                <p>داده‌ها از گزارش "تحلیل بازار عرضه انرژی پایدار ایران – خرداد ۱۴۰۴" استخراج شده است.</p>
+            </div>
+        </section>
+
+        <section id="swot">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-3 text-center">تحلیل SWOT: نیروهای پیشران و بازدارنده بازار</h2>
+            <p class="text-base md:text-lg text-slate-600 max-w-4xl mx-auto mb-10 text-center">بازار انرژی پایدار ایران میدانی از فرصت‌های عظیم و موانع جدی است. این بخش به تحلیل نقاط قوت، ضعف، فرصت‌ها و تهدیدهای کلیدی می‌پردازد که هر سرمایه‌گذار باید پیش از ورود به بازار در نظر بگیرد.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                <div class="bg-white rounded-lg shadow-md p-5 md:p-6 swot-card swot-strengths">
+                    <h3 class="text-lg md:text-xl font-bold mb-3 text-green-700 flex items-center"><span class="text-2xl md:text-3xl ml-2">👍</span>نقاط قوت</h3>
+                    <ul class="list-disc list-inside space-y-1.5 text-sm md:text-base">
+                        <li>پتانسیل بالای خورشیدی و بادی</li>
+                        <li>اهداف بلندپروازانه دولتی</li>
+                        <li>بحران انرژی به عنوان محرک تقاضا</li>
+                        <li>افزایش آگاهی عمومی و دولتی</li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-5 md:p-6 swot-card swot-weaknesses">
+                    <h3 class="text-lg md:text-xl font-bold mb-3 text-red-700 flex items-center"><span class="text-2xl md:text-3xl ml-2">👎</span>نقاط ضعف</h3>
+                    <ul class="list-disc list-inside space-y-1.5 text-sm md:text-base">
+                        <li>وابستگی به سوخت فسیلی و یارانه‌ها</li>
+                        <li>فرسودگی زیرساخت شبکه برق</li>
+                        <li>بوروکراسی پیچیده و زمان‌بر</li>
+                        <li>چالش‌های تأمین مالی پروژه‌ها</li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-5 md:p-6 swot-card swot-opportunities">
+                    <h3 class="text-lg md:text-xl font-bold mb-3 text-blue-700 flex items-center"><span class="text-2xl md:text-3xl ml-2">💡</span>فرصت‌ها</h3>
+                    <ul class="list-disc list-inside space-y-1.5 text-sm md:text-base">
+                        <li>نیاز مبرم صنایع به برق پایدار</li>
+                        <li>الزام قانونی ادارات دولتی</li>
+                        <li>بازار بکر مناطق خارج از شبکه</li>
+                        <li>کاهش جهانی هزینه فناوری‌ها</li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-5 md:p-6 swot-card swot-threats">
+                    <h3 class="text-lg md:text-xl font-bold mb-3 text-orange-700 flex items-center"><span class="text-2xl md:text-3xl ml-2">⚠️</span>تهدیدها</h3>
+                    <ul class="list-disc list-inside space-y-1.5 text-sm md:text-base">
+                        <li>تحریم‌های بین‌المللی</li>
+                        <li>بی‌ثباتی اقتصادی و تورم بالا</li>
+                        <li>عدم پایداری سیاست‌های حمایتی</li>
+                        <li>رقابت با انرژی یارانه‌ای</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="customers">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-3 text-center">بخش‌های پرتقاضا: چه کسانی پیشرو هستند؟</h2>
+            <p class="text-base md:text-lg text-slate-600 max-w-4xl mx-auto mb-10 text-center">شناسایی مشتریانی که بالاترین نیاز و بیشترین تمایل به پذیرش سریع راه‌حل‌های پایدار را دارند، کلید موفقیت در بازار است. نمودار زیر این بخش‌ها را بر اساس فوریت و انگیزه رتبه‌بندی می‌کند.</p>
+            <div class="bg-white rounded-xl shadow-lg p-5 md:p-6">
+                <h3 class="text-xl font-bold text-slate-700 mb-4 text-center">میزان تمایل به پذیرش سریع راه‌حل‌های پایدار</h3>
+                <div class="chart-container">
+                    <canvas id="customerSegmentsChart"></canvas>
+                </div>
+                <p class="mt-4 text-xs md:text-sm text-center text-slate-500">این رتبه‌بندی بر اساس تحلیل کیفی نیازهای هر بخش و انگیزه‌های اقتصادی و قانونی آنها در گزارش است.</p>
+            </div>
+        </section>
+
+        <section id="investment">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-3 text-center">مقایسه فرصت‌های سرمایه‌گذاری</h2>
+            <p class="text-base md:text-lg text-slate-600 max-w-4xl mx-auto mb-10 text-center">بازار انرژی پایدار ایران نقاط ورود متنوعی با سطوح مختلف سرمایه، ریسک، و بازدهی ارائه می‌دهد. این بخش به شما کمک می‌کند تا جذاب‌ترین فرصت‌ها را بر اساس اهداف خود مقایسه کنید.</p>
+            <div id="investment-cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            </div>
+        </section>
+
+        <section id="models">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-3 text-center">ایده‌های استارتاپی و مدل‌های کسب‌وکار نوآورانه</h2>
+            <p class="text-base md:text-lg text-slate-600 max-w-4xl mx-auto mb-10 text-center">فراتر از مدل‌های سنتی، فرصت‌های بکری برای نوآوری وجود دارد. در این بخش سه ایده استارتاپی که نیازهای برآورده نشده بازار را هدف قرار می‌دهند، معرفی می‌شود.</p>
+            <div class="relative max-w-3xl mx-auto">
+                <div class="border-r-2 border-indigo-200 absolute h-full top-0" style="right: 11px; z-index:0;"></div>
+                <ul class="space-y-10 md:space-y-12">
+                    <li class="mr-6 md:mr-8">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 bg-indigo-600 text-white w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center font-bold z-10 text-sm md:text-base">۱</div>
+                            <div class="mr-3 md:mr-4 bg-white p-4 md:p-6 rounded-lg shadow-md flex-1">
+                                <h3 class="text-lg md:text-xl font-bold mb-2 text-indigo-700">توسعه‌دهنده با مدل اجاره به شرط تملیک (Lease-to-Own)</h3>
+                                <p class="text-slate-600 text-sm md:text-base">این مدل مشکل سرمایه اولیه سنگین را برای صنایع و کسب‌وکارهای متوسط حل می‌کند. شما نیروگاه را احداث کرده و هزینه آن را به صورت اقساط ماهانه از محل صرفه‌جویی در هزینه برق مشتری دریافت می‌کنید.</p>
+                            </div>
+                        </div>
+                    </li>
+                     <li class="mr-6 md:mr-8">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 bg-indigo-600 text-white w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center font-bold z-10 text-sm md:text-base">۲</div>
+                            <div class="mr-3 md:mr-4 bg-white p-4 md:p-6 rounded-lg shadow-md flex-1">
+                                <h3 class="text-lg md:text-xl font-bold mb-2 text-indigo-700">پلتفرم یکپارچه خدمات خورشیدی (مشابه SolarCity)</h3>
+                                <p class="text-slate-600 text-sm md:text-base">یک پلتفرم آنلاین که فرآیند مشاوره، خرید، نصب و پشتیبانی سیستم‌های خورشیدی کوچک را برای مردم عادی ساده‌سازی می‌کند و با ایجاد شبکه نصابان معتبر، کل فرآیند را مدیریت می‌نماید.</p>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="mr-6 md:mr-8">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 bg-indigo-600 text-white w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center font-bold z-10 text-sm md:text-base">۳</div>
+                            <div class="mr-3 md:mr-4 bg-white p-4 md:p-6 rounded-lg shadow-md flex-1">
+                                <h3 class="text-lg md:text-xl font-bold mb-2 text-indigo-700">شرکت تخصصی میکرونیروگاه‌های هیبریدی</h3>
+                                <p class="text-slate-600 text-sm md:text-base">تمرکز بر ارائه راه‌حل‌های برق پایدار برای مناطق خارج از شبکه، دکل‌های مخابراتی، و مشتریان حساس مانند بیمارستان‌ها با ترکیب انرژی خورشیدی، باتری و ژنراتورهای پشتیبان.</p>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-800 text-slate-300 mt-16 md:mt-24">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <p class="text-sm">این داشبورد تعاملی بر اساس "تحلیل بازار عرضه انرژی پایدار ایران – خرداد ۱۴۰۴" تهیه شده است.</p>
+            <p class="text-xs text-slate-400 mt-2">تمامی حقوق برای توسعه‌دهنده محفوظ است. © ۲۰۲۵</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const APP_DATA = {
+                growth: {
+                    labels: ['ظرفیت فعلی (۱۴۰۴)', 'هدف کوتاه‌مدت (پایان ۱۴۰۴)', 'هدف میان‌مدت (۱۴۰۸)'],
+                    values: [1700, 10000, 30000]
+                },
+                composition: {
+                    labels: ['خورشیدی', 'بادی', 'برق‌آبی کوچک', 'زیست‌توده', 'سایر'],
+                    values: [69, 13, 10, 1, 7]
+                },
+                customerSegments: {
+                    labels: [
+                        'صنایع بزرگ انرژی‌بر (فولاد، سیمان)',
+                        'ادارات و سازمان‌های دولتی (الزام قانونی)',
+                        'بیمارستان‌ها و مراکز درمانی',
+                        'بخش کشاورزی (مزارع و پمپ‌های آب)',
+                        'شهرداری‌ها و دهیاری‌ها',
+                        'مجتمع‌های مسکونی و تجاری جدید',
+                    ],
+                    values: [95, 90, 85, 75, 70, 65]
+                },
+                investmentOpportunities: [
+                    { title: 'خورشیدی روفتاپ (مسکونی/تجاری کوچک)', capital: 'پایین تا متوسط', roi: 'بالا / ۲ تا ۶.۵ سال', risk: 'پایین', demand: 'بالا', color: 'emerald' },
+                    { title: 'خورشیدی صنعتی/تجاری (متوسط)', capital: 'متوسط تا بالا', roi: 'متوسط تا بالا', risk: 'متوسط', demand: 'بسیار بالا', color: 'sky' },
+                    { title: 'خورشیدی و بادی بزرگ مقیاس', capital: 'بسیار بالا', roi: 'متوسط (وابسته به PPA)', risk: 'بالا', demand: 'بسیار بالا', color: 'indigo' },
+                    { title: 'ذخیره‌سازی انرژی (باتری)', capital: 'متوسط تا بسیار بالا', roi: 'نامشخص (در حال ظهور)', risk: 'بالا', demand: 'در حال رشد', color: 'amber' },
+                    { title: 'شبکه‌های هوشمند و نرم‌افزار', capital: 'پایین تا متوسط', roi: 'متوسط تا بالا', risk: 'متوسط', demand: 'در حال رشد', color: 'rose' },
+                    { title: 'خدمات مشاوره و نصب تخصصی', capital: 'پایین', roi: 'متوسط', risk: 'پایین', demand: 'رو به افزایش', color: 'violet' }
+                ]
+            };
+            
+            const CHART_PALETTES = {
+                composition: ['#4f46e5', '#14b8a6', '#0ea5e9', '#f97316', '#a8a29e'], // indigo, teal, sky, orange, stone
+                customer: ['#312e81', '#4338ca', '#4f46e5', '#6366f1', '#818cf8', '#a5b4fc'], // shades of indigo
+            };
+
+            const commonTooltipTitleCallback = (tooltipItems) => {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                return Array.isArray(label) ? label.join(' ') : label;
+            };
+            
+            const wrapChartLabel = (str, maxWidth = 16) => {
+                if (typeof str !== 'string' || str.length <= maxWidth) return str;
+                const words = str.split(' ');
+                const lines = [];
+                let currentLine = '';
+                for (const word of words) {
+                    if ((currentLine + ' ' + word).trim().length > maxWidth && currentLine.length > 0) {
+                        lines.push(currentLine.trim());
+                        currentLine = '';
+                    }
+                    currentLine += `${word} `;
+                }
+                if (currentLine.trim()) lines.push(currentLine.trim());
+                return lines.length > 0 ? lines : [str];
+            };
+            
+            const initializeGrowthChart = () => {
+                const ctx = document.getElementById('growthChart')?.getContext('2d');
+                if (!ctx) return;
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: APP_DATA.growth.labels,
+                        datasets: [{
+                            label: 'ظرفیت نصب‌شده تجدیدپذیر (مگاوات)',
+                            data: APP_DATA.growth.values,
+                            borderColor: '#4f46e5', // indigo-600
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.2,
+                            pointBackgroundColor: '#4f46e5',
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, ticks: { callback: (v) => v.toLocaleString('fa-IR') + ' MW' } } },
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { title: commonTooltipTitleCallback } } }
+                    }
+                });
+            };
+
+            const initializeCompositionChart = () => {
+                const ctx = document.getElementById('compositionChart')?.getContext('2d');
+                if (!ctx) return;
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: APP_DATA.composition.labels,
+                        datasets: [{
+                            label: 'سهم از کل',
+                            data: APP_DATA.composition.values,
+                            backgroundColor: CHART_PALETTES.composition,
+                            borderColor: '#f8fafc', // slate-50 (body bg)
+                            borderWidth: 2,
+                            hoverOffset: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { 
+                            legend: { position: 'bottom', labels: { font: { size: 12, family: 'Vazirmatn' }, padding:15 } },
+                            tooltip: { callbacks: { title: commonTooltipTitleCallback, label: (c) => `${c.label}: ${c.formattedValue}%` } }
+                        }
+                    }
+                });
+            };
+            
+            const initializeCustomerSegmentsChart = () => {
+                const ctx = document.getElementById('customerSegmentsChart')?.getContext('2d');
+                if (!ctx) return;
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: APP_DATA.customerSegments.labels.map(l => wrapChartLabel(l, 22)),
+                        datasets: [{
+                            label: 'میزان تمایل و فوریت',
+                            data: APP_DATA.customerSegments.values,
+                            backgroundColor: CHART_PALETTES.customer,
+                            borderRadius: 3,
+                            barPercentage: 0.65
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            x: { beginAtZero: true, max: 100, ticks: { callback: (v) => '%' + v.toLocaleString('fa-IR') } },
+                            y: { ticks: { font: { size: 11, family: 'Vazirmatn' } } }
+                        },
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { title: commonTooltipTitleCallback } } }
+                    }
+                });
+            };
+
+            const renderInvestmentCards = () => {
+                const container = document.getElementById('investment-cards-container');
+                if (!container) return;
+                const riskClasses = { 'پایین': 'text-green-700 bg-green-100', 'متوسط': 'text-amber-700 bg-amber-100', 'بالا': 'text-red-700 bg-red-100' };
+                container.innerHTML = APP_DATA.investmentOpportunities.map(card => `
+                    <div class="bg-white rounded-xl shadow-md p-5 flex flex-col investment-card border-t-4 border-${card.color}-500">
+                        <h3 class="text-lg font-bold text-slate-800 mb-2.5">${card.title}</h3>
+                        <div class="flex-grow space-y-2 text-sm text-slate-600">
+                            <p><span class="font-semibold text-slate-700">سرمایه اولیه:</span> ${card.capital}</p>
+                            <p><span class="font-semibold text-slate-700">بازدهی / ROI:</span> ${card.roi}</p>
+                            <p><span class="font-semibold text-slate-700">تقاضای بازار:</span> ${card.demand}</p>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-slate-200">
+                           <span class="font-semibold text-slate-700 text-sm">سطح ریسک:</span>
+                           <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${riskClasses[card.risk] || 'text-slate-700 bg-slate-100'}">${card.risk}</span>
+                        </div>
+                    </div>
+                `).join('');
+            };
+            
+            const setupNavigation = () => {
+                const mainNavbar = document.getElementById('navbar');
+                const mobileMenu = document.getElementById('mobile-menu');
+                const mobileMenuButton = document.getElementById('mobile-menu-button');
+                const allNavButtons = document.querySelectorAll('.nav-btn');
+
+                if (mobileMenuButton && mobileMenu) {
+                    mobileMenuButton.addEventListener('click', () => {
+                        mobileMenu.classList.toggle('hidden');
+                    });
+                }
+                
+                const sections = document.querySelectorAll('main section[id]');
+                const observerOptions = { root: null, rootMargin: '-30% 0px -70% 0px', threshold: 0 };
+
+                const observer = new IntersectionObserver(entries => {
+                    let currentActiveSectionId = null;
+                     entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                           currentActiveSectionId = entry.target.getAttribute('id');
+                        }
+                    });
+
+                    if (!currentActiveSectionId && entries.length > 0) {
+                        // If no section is "intersecting" based on rootMargin, pick the one closest to top
+                        // This helps when scrolling fast or if sections are short
+                        let minPositiveTop = Infinity;
+                        let fallbackSectionId = null;
+                        sections.forEach(sec => {
+                            const rect = sec.getBoundingClientRect();
+                            if (rect.top >= 0 && rect.top < minPositiveTop) {
+                                minPositiveTop = rect.top;
+                                fallbackSectionId = sec.id;
+                            }
+                        });
+                        currentActiveSectionId = fallbackSectionId || (entries[0] ? entries[0].target.id : null);
+                    }
+                    
+                    allNavButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                        if (currentActiveSectionId && btn.dataset.target === currentActiveSectionId) {
+                            btn.classList.add('active');
+                        }
+                    });
+
+                }, observerOptions);
+
+                sections.forEach(section => observer.observe(section));
+
+                allNavButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const targetId = button.dataset.target;
+                        const targetSection = document.getElementById(targetId);
+                        if (targetSection) {
+                            targetSection.scrollIntoView({ behavior: 'smooth' });
+                            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                                mobileMenu.classList.add('hidden'); // Close mobile menu on click
+                            }
+                        }
+                    });
+                });
+            };
+
+            initializeGrowthChart();
+            initializeCompositionChart();
+            initializeCustomerSegmentsChart();
+            renderInvestmentCards();
+            setupNavigation();
+        });
+    </script>
+</body>
+</html>
