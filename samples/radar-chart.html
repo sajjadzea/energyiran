@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نمونه نمودار رادار</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+<div class="chart-wrapper">
+    <canvas id="radarChart"></canvas>
+</div>
+<script>
+//
+// این نمونه کد یک نمودار رادار را با Chart.js ایجاد می‌کند.
+// برای تغییر داده‌ها، مقادیر بخش "data" و "labels" را ویرایش کنید.
+// می‌توانید این فایل را در پروژه‌ی داشبورد خود قرار داده و به عنوان یک بخش گرافیکی استفاده کنید.
+//
+const ctx = document.getElementById('radarChart').getContext('2d');
+const data = {
+    labels: ['کیفیت', 'قیمت', 'خدمات', 'سرعت', 'نوآوری'],
+    datasets: [
+        {
+            label: 'رقیب الف',
+            data: [80, 65, 90, 75, 70],
+            fill: true,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgb(54, 162, 235)',
+            pointBackgroundColor: 'rgb(54, 162, 235)'
+        },
+        {
+            label: 'رقیب ب',
+            data: [70, 80, 60, 85, 90],
+            fill: true,
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgb(255, 99, 132)',
+            pointBackgroundColor: 'rgb(255, 99, 132)'
+        }
+    ]
+};
+
+const config = {
+    type: 'radar',
+    data: data,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            r: {
+                beginAtZero: true
+            }
+        },
+        plugins: {
+            legend: {
+                labels: {
+                    font: {
+                        family: 'sans-serif'
+                    }
+                }
+            },
+            tooltip: {
+                enabled: true
+            }
+        }
+    }
+};
+
+new Chart(ctx, config);
+</script>
+</body>
+</html>
