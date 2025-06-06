@@ -1,5 +1,10 @@
 # دادهٔ خام بزرگ
 data/**
 !data/README.md
+!data/competitors.json
+!data/impact_metrics.csv
+!data/industries_summary.json
+!data/trade_nodes.csv
+!data/trade_edges.csv
 # محیط مجازی
 .venv/

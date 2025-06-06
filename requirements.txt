@@ -2,3 +2,4 @@ dash
 pandas
 plotly
 dash-bootstrap-components
+dash-cytoscape
