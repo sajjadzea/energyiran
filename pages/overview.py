@@ -1,24 +1,26 @@
-"""نمای کلی صنایع استان خراسان رضوی.
+"""نمای کلی بازار صنایع استان خراسان رضوی.
 
-این صفحه داده‌های خلاصه‌ی صنایع را از فایل ``data/industries_summary.json``
-خوانده و در قالب نمودارهای دایره‌ای، میله‌ای و جدول نمایش می‌دهد."""
+این صفحه داده‌ها را از فایل ``data/industries_summary.json`` خوانده و
+نمودارهای دایره‌ای و میله‌ای و نیز جدول اطلاعات را نمایش می‌دهد.
+"""
 
 import json
 import pandas as pd
 from dash import html, dcc, dash_table, register_page
 import plotly.express as px
 
+# ثبت صفحه در ساختار چندصفحه‌ای Dash
 register_page(__name__, path="/overview", name="نمای کلی صنایع")
 
 # ---------------------------------------------------------------------------
-# Load and prepare data
+# بارگذاری و آماده‌سازی داده‌ها
 # ---------------------------------------------------------------------------
 with open("data/industries_summary.json", encoding="utf-8") as f:
     data = json.load(f)
 
 df = pd.DataFrame(data)
 
-# Map possible old column names to the expected ones
+# سازگارسازی نام ستون‌ها در صورت وجود نام‌های قدیمی
 rename_map = {
     "industry": "industry_name",
     "isic": "isic_code",
@@ -28,7 +30,7 @@ for old, new in rename_map.items():
     if old in df.columns and new not in df.columns:
         df = df.rename(columns={old: new})
 
-# Pie chart: distribution of units by industry
+# نمودار دایره‌ای: توزیع تعداد واحدها بر اساس صنعت
 pie_fig = px.pie(
     df,
     names="industry_name",
@@ -36,7 +38,7 @@ pie_fig = px.pie(
     title="توزیع تعداد واحدها بر اساس صنعت",
 )
 
-# Bar chart: units per industry ordered descending
+# نمودار میله‌ای: تعداد واحدها به ترتیب نزولی
 bar_df = df.sort_values("unit_count", ascending=False)
 bar_fig = px.bar(
     bar_df,
@@ -46,7 +48,7 @@ bar_fig = px.bar(
 )
 bar_fig.update_layout(xaxis_title="نام صنعت", yaxis_title="تعداد واحدها")
 
-# DataTable columns
+# ستون‌های جدول DataTable
 table_columns = [
     {"name": "نام صنعت", "id": "industry_name"},
     {"name": "کد ISIC", "id": "isic_code"},
@@ -54,7 +56,7 @@ table_columns = [
 ]
 
 # ---------------------------------------------------------------------------
-# Layout
+# چیدمان صفحه
 # ---------------------------------------------------------------------------
 layout = html.Div(
     [
@@ -62,11 +64,17 @@ layout = html.Div(
         html.Div(
             [
                 html.Div(
-                    [html.H2("توزیع واحدها بر اساس صنعت", className="text-xl mb-2"), dcc.Graph(figure=pie_fig)],
+                    [
+                        html.H2("توزیع واحدها بر اساس صنعت", className="text-xl mb-2"),
+                        dcc.Graph(figure=pie_fig),
+                    ],
                     className="bg-white shadow rounded p-4",
                 ),
                 html.Div(
-                    [html.H2("مقایسه تعداد واحدها", className="text-xl mb-2"), dcc.Graph(figure=bar_fig)],
+                    [
+                        html.H2("مقایسه تعداد واحدها", className="text-xl mb-2"),
+                        dcc.Graph(figure=bar_fig),
+                    ],
                     className="bg-white shadow rounded p-4",
                 ),
                 html.Div(
