@@ -1,0 +1,7 @@
+[
+    {"isic": "10", "industry": "صنایع غذایی", "units": 120, "consumption": 3400},
+    {"isic": "22", "industry": "ساخت لاستیک و پلاستیک", "units": 80, "consumption": 2700},
+    {"isic": "27", "industry": "تولید فلزات اساسی", "units": 60, "consumption": 5000},
+    {"isic": "32", "industry": "ماشین‌آلات و تجهیزات", "units": 40, "consumption": 1500},
+    {"isic": "45", "industry": "خدمات پس از فروش", "units": 30}
+]
