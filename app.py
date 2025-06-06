@@ -12,4 +12,5 @@ app.layout = dbc.Container(
 )
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    # Dash 3 replaced ``run_server`` with ``run``
+    app.run(debug=True)
