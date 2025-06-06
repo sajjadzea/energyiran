@@ -1,0 +1,9 @@
+source,target,volume
+IR,CN,500
+IR,IQ,120
+IR,AE,300
+CN,DE,600
+CN,RU,400
+RU,DE,250
+DE,AE,150
+AE,IQ,100
