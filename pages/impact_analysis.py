@@ -29,7 +29,9 @@ layout = html.Div([
         data=[],
         style_header={"fontWeight": "bold"},
         style_cell={"textAlign": "center"},
-        className="mt-4"
+        # dash_table 3.x does not support the ``className`` argument
+        # ``style_*`` props are used instead for styling
+        style_table={"marginTop": "1rem"}
     ),
 ])
 
